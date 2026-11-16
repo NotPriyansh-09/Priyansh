@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI-Based Semiconductor Wafer Defect Detection | Priyansh Hiteshkumar Shrimali (KU202609127)</title>
+  <style>
+    :root {
+      --bg-primary: #0b1120;
+      --bg-secondary: #111827;
+      --bg-card: #162033;
+      --bg-card-hover: #1d2a44;
+      --border-subtle: rgba(148, 163, 184, 0.16);
+      --border-accent: rgba(56, 189, 248, 0.4);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-blue: #38bdf8;
+      --accent-indigo: #6366f1;
+      --accent-amber: #f59e0b;
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+      --chip-dark: #182334;
+      --chip-core: #4f9cf9;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --shadow-lg: 0 20px 40px -15px rgba(2, 6, 23, 0.65);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    body {
+      background-image:
+        radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.08), transparent 35%),
+        radial-gradient(circle at 85% 25%, rgba(99, 102, 241, 0.08), transparent 40%);
+      min-height: 100vh;
+    }
+
+    /* Navigation */
+    header.navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(11, 17, 32, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0.9rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      text-decoration: none;
+      color: var(--text-primary);
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo));
+      color: #0b1120;
+      font-weight: 800;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.55rem;
+      border-radius: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--accent-blue);
+    }
+
+    .btn-copy {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--accent-blue);
+      border: 1px solid var(--border-accent);
+      padding: 0.42rem 0.85rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-copy:hover {
+      background: rgba(56, 189, 248, 0.22);
+    }
+
+    /* Layout Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    section {
+      padding: 4rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    section:last-of-type {
+      border-bottom: none;
+    }
+
+    .section-eyebrow {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent-blue);
+      margin-bottom: 0.5rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.55rem, 2.5vw, 2.1rem);
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+
+    .section-subtitle {
+      color: var(--text-secondary);
+      max-width: 760px;
+      font-size: 1rem;
+      margin-bottom: 2.25rem;
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 3.5rem 0 4rem;
+    }
+
+    .uni-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      color: #c7d2fe;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 2.5rem;
+      align-items: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 3.8vw, 3rem);
+      font-weight: 850;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #ffffff 30%, #7dd3fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-desc {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      margin-bottom: 1.75rem;
+      max-width: 620px;
+    }
+
+    .meta-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.9rem 1.25rem;
+    }
+
+    @media (max-width: 540px) {
+      .meta-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .meta-item label {
+      display: block;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 0.15rem;
+    }
+
+    .meta-item span {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .meta-item.full {
+      grid-column: 1 / -1;
+      padding-top: 0.65rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    /* Interactive Chip Schematic Card */
+    .schematic-card {
+      background: #f1f5fb;
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #182334;
+    }
+
+    .schematic-caption {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: #475569;
+      margin-top: 0.75rem;
+      padding-top: 0.6rem;
+      border-top: 1px solid #cbd5e1;
+      font-weight: 600;
+    }
+
+    .chip-node {
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .chip-node:hover circle {
+      stroke: #182334;
+      stroke-width: 3px;
+    }
+
+    @keyframes scanBeam {
+      0%, 100% { transform: translateY(0px); opacity: 0.35; }
+      50% { transform: translateY(96px); opacity: 0.9; }
+    }
+
+    .scan-line {
+      animation: scanBeam 3.2s ease-in-out infinite;
+    }
+
+    /* Scope Notice Banner */
+    .scope-note {
+      margin-top: 2rem;
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-left: 4px solid var(--accent-amber);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      font-size: 0.9rem;
+      color: #fde68a;
+    }
+
+    .scope-note strong {
+      color: #fbbf24;
+    }
+
+    /* Cards Grid */
+    .cards-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .cards-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .info-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.6rem;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .info-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-accent);
+    }
+
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      background: rgba(56, 189, 248, 0.14);
+      color: var(--accent-blue);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .info-card h3 {
+      font-size: 1.12rem;
+      margin-bottom: 0.6rem;
+      color: var(--text-primary);
+    }
+
+    .info-card p {
+      font-size: 0.93rem;
+      color: var(--text-secondary);
+    }
+
+    /* Defect Explorer */
+    .defect-tabs {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.75rem;
+    }
+
+    .defect-tab {
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      padding: 0.6rem 1.1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .defect-tab:hover {
+      border-color: var(--border-accent);
+      color: var(--text-primary);
+    }
+
+    .defect-tab.active {
+      background: rgba(56, 189, 248, 0.16);
+      border-color: var(--accent-blue);
+      color: #ffffff;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .explorer-panel {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 2rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      align-items: center;
+    }
+
+    @media (max-width: 860px) {
+      .explorer-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .wafer-viewer {
+      background: #070d19;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      text-align: center;
+    }
+
+    .viewer-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.9rem;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .toggle-btn {
+      background: rgba(99, 102, 241, 0.16);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      color: #c7d2fe;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .defect-details h3 {
+      font-size: 1.35rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+
+    .class-badge {
+      font-size: 0.74rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      padding: 0.22rem 0.6rem;
+      border-radius: 6px;
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+
+    .class-badge.normal {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border-color: rgba(16, 185, 129, 0.35);
+    }
+
+    .defect-details p {
+      color: var(--text-secondary);
+      margin-bottom: 1.25rem;
+      font-size: 0.95rem;
+    }
+
+    .spec-list {
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .spec-row {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.85rem 1rem;
+    }
+
+    .spec-row strong {
+      display: block;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--accent-blue);
+      margin-bottom: 0.2rem;
+    }
+
+    .spec-row span {
+      font-size: 0.9rem;
+      color: var(--text-primary);
+    }
+
+    /* Interactive AI Workflow */
+    .workflow-steps {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .workflow-steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 520px) {
+      .workflow-steps {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .step-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: var(--text-primary);
+    }
+
+    .step-btn:hover {
+      border-color: var(--border-accent);
+    }
+
+    .step-btn.active {
+      background: linear-gradient(180deg, rgba(56, 189, 248, 0.16), rgba(22, 32, 51, 0.95));
+      border-color: var(--accent-blue);
+    }
+
+    .step-num {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--accent-blue);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+
+    .step-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .workflow-detail-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-lg);
+      padding: 1.6rem;
+      margin-bottom: 2.25rem;
+    }
+
+    .workflow-detail-box h4 {
+      font-size: 1.15rem;
+      color: var(--accent-blue);
+      margin-bottom: 0.5rem;
+    }
+
+    .workflow-detail-box p {
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .io-pills {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .io-pill {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border-subtle);
+      padding: 0.55rem 0.9rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+    }
+
+    .io-pill strong {
+      color: var(--accent-amber);
+    }
+
+    /* Dataset & Metrics Split */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 820px) {
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+    }
+
+    .panel-box h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.85rem;
+      color: var(--text-primary);
+    }
+
+    pre.folder-tree {
+      background: #080e1c;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.83rem;
+      color: #bae6fd;
+      overflow-x: auto;
+      line-height: 1.55;
+    }
+
+    .metric-tags {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .metric-tag {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
+    }
+
+    .metric-tag strong {
+      display: block;
+      color: var(--accent-emerald);
+      font-size: 0.88rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .metric-tag span {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    /* Documentation Table & Slides */
+    .table-wrap {
+      overflow-x: auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      margin-bottom: 2rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 0.95rem 1.2rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    th {
+      background: rgba(15, 23, 42, 0.85);
+      color: var(--accent-blue);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    td {
+      color: var(--text-secondary);
+    }
+
+    td:first-child, td:nth-child(2) {
+      color: var(--text-primary);
+    }
+
+    .tool-pill {
+      display: inline-block;
+      background: rgba(99, 102, 241, 0.16);
+      color: #c7d2fe;
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .slides-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+
+    .slide-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.1rem;
+    }
+
+    .slide-card span {
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: var(--accent-amber);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .slide-card p {
+      margin-top: 0.35rem;
+      font-size: 0.9rem;
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* Outcomes & Conclusion */
+    .outcomes-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 760px) {
+      .outcomes-list {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .outcomes-list li {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.2rem;
+      display: flex;
+      gap: 0.85rem;
+      align-items: flex-start;
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+    }
+
+    .outcome-num {
+      background: rgba(16, 185, 129, 0.16);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      font-weight: 800;
+      font-size: 0.78rem;
+      min-width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 0.1rem;
+    }
+
+    .conclusion-box {
+      background: linear-gradient(135deg, rgba(22, 32, 51, 0.95), rgba(15, 23, 42, 0.98));
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+    }
+
+    .conclusion-box h3 {
+      font-size: 1.2rem;
+      margin-bottom: 0.65rem;
+      color: var(--accent-blue);
+    }
+
+    .conclusion-box p {
+      color: var(--text-secondary);
+      font-size: 0.96rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .publish-bar {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .publish-bar input {
+      flex: 1;
+      min-width: 240px;
+      background: #080e1c;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      padding: 0.55rem 0.9rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2.25rem 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.84rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid var(--accent-blue);
+      padding: 0.75rem 1.1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.86rem;
+      box-shadow: var(--shadow-lg);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: all 0.25s ease;
+      z-index: 200;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header Navigation -->
+  <header class="navbar">
+    <div class="nav-inner">
+      <a href="#top" class="brand">
+        <span class="brand-badge">KU202609127</span>
+        <span>AI Wafer Defect Detection</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#overview">Overview</a>
+        <a href="#defects">Defect Explorer</a>
+        <a href="#workflow">AI/CNN Workflow</a>
+        <a href="#documentation">Documentation</a>
+        <a href="#outcomes">Outcomes</a>
+        <button class="btn-copy" id="copyMetaBtn" type="button">Copy Student Info</button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top" class="container">
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="uni-banner">
+        KARNAVATI UNIVERSITY &bull; UNITEDWORLD INSTITUTE OF TECHNOLOGY (UIT) &bull; AY 2026–2027
+      </div>
+
+      <div class="hero-grid">
+        <div>
+          <h1>AI-Based Semiconductor Wafer Defect Detection</h1>
+          <p class="hero-desc">
+            A conceptual digital portfolio exploring how Artificial Intelligence, image preprocessing, and Convolutional Neural Networks (CNNs) can support visual quality inspection in semiconductor wafer and chip manufacturing.
+          </p>
+
+          <div class="meta-card">
+            <div class="meta-grid">
+              <div class="meta-item">
+                <label>Student Name</label>
+                <span>Priyansh Hiteshkumar Shrimali</span>
+              </div>
+              <div class="meta-item">
+                <label>KU ID</label>
+                <span>KU202609127</span>
+              </div>
+              <div class="meta-item">
+                <label>Programme &amp; Branch</label>
+                <span>B.Tech &mdash; ECE</span>
+              </div>
+              <div class="meta-item">
+                <label>Course Code &amp; Name</label>
+                <span>26UTU01003 &mdash; Fundamentals of AI (FAI)</span>
+              </div>
+              <div class="meta-item full">
+                <label>Practical – 10</label>
+                <span>Getting Started with Gemini: Accounts, Interface, Non-Determinism and Prompting</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive SVG Chip Inspection Schematic -->
+        <div class="schematic-card">
+          <svg viewBox="0 0 560 250" width="100%" height="auto" role="img" aria-label="Semiconductor Wafer AI Chip Inspection Diagram">
+            <rect x="2" y="2" width="556" height="246" rx="14" fill="#f1f5fb" stroke="#cbd5e1" stroke-width="2" />
+            <text x="18" y="28" fill="#182334" font-size="14" font-weight="800" font-family="sans-serif">SEMICONDUCTOR WAFER</text>
+            <text x="392" y="28" fill="#64748b" font-size="13" font-weight="700" font-family="sans-serif">DEFECT CLASSIFICATION</text>
+            <text x="18" y="232" fill="#182334" font-size="14" font-weight="800" font-family="sans-serif">IMAGE-BASED QUALITY CHECK</text>
+
+            <!-- IC Pins Top & Bottom -->
+            <g stroke="#64748b" stroke-width="4" stroke-linecap="round">
+              <line x1="215" y1="26" x2="215" y2="48" />
+              <line x1="237" y1="26" x2="237" y2="48" />
+              <line x1="259" y1="26" x2="259" y2="48" />
+              <line x1="281" y1="26" x2="281" y2="48" />
+              <line x1="303" y1="26" x2="303" y2="48" />
+              <line x1="325" y1="26" x2="325" y2="48" />
+              <line x1="347" y1="26" x2="347" y2="48" />
+
+              <line x1="215" y1="202" x2="215" y2="224" />
+              <line x1="237" y1="202" x2="237" y2="224" />
+              <line x1="259" y1="202" x2="259" y2="224" />
+              <line x1="281" y1="202" x2="281" y2="224" />
+              <line x1="303" y1="202" x2="303" y2="224" />
+              <line x1="325" y1="202" x2="325" y2="224" />
+              <line x1="347" y1="202" x2="347" y2="224" />
+
+              <!-- IC Pins Left & Right -->
+              <line x1="176" y1="75" x2="196" y2="75" />
+              <line x1="176" y1="100" x2="196" y2="100" />
+              <line x1="176" y1="125" x2="196" y2="125" />
+              <line x1="176" y1="150" x2="196" y2="150" />
+              <line x1="176" y1="175" x2="196" y2="175" />
+
+              <line x1="364" y1="75" x2="384" y2="75" />
+              <line x1="364" y1="100" x2="384" y2="100" />
+              <line x1="364" y1="125" x2="384" y2="125" />
+              <line x1="364" y1="150" x2="384" y2="150" />
+              <line x1="364" y1="175" x2="384" y2="175" />
+            </g>
+
+            <!-- Chip Body -->
+            <rect x="196" y="48" width="168" height="154" rx="18" fill="#182334" />
+            <rect x="224" y="76" width="112" height="98" rx="10" fill="#5aa2f8" />
+            <text x="280" y="118" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="800" font-family="sans-serif">AI CHIP</text>
+            <text x="280" y="140" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="700" font-family="sans-serif">INSPECTION</text>
+
+            <!-- Animated Scan Beam -->
+            <rect class="scan-line" x="226" y="78" width="108" height="3" fill="#ffffff" />
+
+            <!-- Interactive Defect Nodes -->
+            <g class="chip-node" onclick="selectDefectAndScroll('scratch')">
+              <text x="82" y="96" text-anchor="end" fill="#182334" font-size="14" font-weight="600" font-family="sans-serif">Scratch</text>
+              <circle cx="104" cy="91" r="11" fill="#f59e0b" />
+            </g>
+
+            <g class="chip-node" onclick="selectDefectAndScroll('crack')">
+              <text x="82" y="166" text-anchor="end" fill="#182334" font-size="14" font-weight="600" font-family="sans-serif">Crack</text>
+              <circle cx="104" cy="161" r="11" fill="#f59e0b" />
+            </g>
+
+            <g class="chip-node" onclick="selectDefectAndScroll('particle')">
+              <circle cx="456" cy="91" r="11" fill="#f59e0b" />
+              <text x="476" y="96" text-anchor="start" fill="#182334" font-size="14" font-weight="600" font-family="sans-serif">Particle</text>
+            </g>
+
+            <g class="chip-node" onclick="selectDefectAndScroll('pattern')">
+              <circle cx="456" cy="161" r="11" fill="#f59e0b" />
+              <text x="476" y="166" text-anchor="start" fill="#182334" font-size="14" font-weight="600" font-family="sans-serif">Pattern</text>
+            </g>
+          </svg>
+          <div class="schematic-caption">
+            <span>Click any amber defect node to inspect class details</span>
+            <span>KUID: KU202609127</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="scope-note">
+        <strong>Project Scope Note:</strong> This practical documents a structured AI project concept, labelled dataset design, and proposed CNN classification workflow. It does not claim measured model accuracy or a completed industrial deployment; model performance must be verified using unseen test images and standard evaluation metrics.
+      </div>
+    </section>
+
+    <!-- Project Overview -->
+    <section id="overview">
+      <span class="section-eyebrow">01 &bull; Project Foundation</span>
+      <h2 class="section-title">Introduction, Problem Statement &amp; Objective</h2>
+      <p class="section-subtitle">
+        Connecting Artificial Intelligence and computer vision principles with semiconductor manufacturing and electronics quality assurance.
+      </p>
+
+      <div class="cards-3">
+        <div class="info-card">
+          <div class="card-icon">IN</div>
+          <h3>Project Introduction</h3>
+          <p>
+            Semiconductor chips power computers, smartphones, vehicles, communication systems, and modern electronic devices. During wafer and chip fabrication, microscopic surface or pattern defects can degrade device reliability. AI-assisted image classification supports faster, consistent visual inspection.
+          </p>
+        </div>
+
+        <div class="info-card">
+          <div class="card-icon">PS</div>
+          <h3>Problem Statement</h3>
+          <p>
+            Manual visual inspection of semiconductor wafers and chip surfaces can be time-consuming, repetitive, and difficult to scale consistently across high-volume manufacturing lines, creating a need for automated visual screening support.
+          </p>
+        </div>
+
+        <div class="info-card">
+          <div class="card-icon">OB</div>
+          <h3>Project Objective</h3>
+          <p>
+            To explain and design an AI-based image inspection system that analyses semiconductor wafer or chip-surface images and classifies visible defects into structured categories to assist quality control in electronics manufacturing.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Defect Explorer -->
+    <section id="defects">
+      <span class="section-eyebrow">02 &bull; Visual Defect Taxonomy</span>
+      <h2 class="section-title">Interactive 5-Class Wafer Defect Explorer</h2>
+      <p class="section-subtitle">
+        Explore the five proposed image categories defined for the labelled wafer dataset: Normal Surface, Scratch, Particle / Contamination, Crack, and Pattern Irregularity.
+      </p>
+
+      <div class="defect-tabs" role="tablist">
+        <button class="defect-tab active" data-defect="normal" onclick="selectDefect('normal')">
+          <span class="dot" style="background:#10b981;"></span> Normal Surface
+        </button>
+        <button class="defect-tab" data-defect="scratch" onclick="selectDefect('scratch')">
+          <span class="dot" style="background:#f59e0b;"></span> Scratch
+        </button>
+        <button class="defect-tab" data-defect="particle" onclick="selectDefect('particle')">
+          <span class="dot" style="background:#f59e0b;"></span> Particle / Contamination
+        </button>
+        <button class="defect-tab" data-defect="crack" onclick="selectDefect('crack')">
+          <span class="dot" style="background:#f43f5e;"></span> Crack
+        </button>
+        <button class="defect-tab" data-defect="pattern" onclick="selectDefect('pattern')">
+          <span class="dot" style="background:#6366f1;"></span> Pattern Irregularity
+        </button>
+      </div>
+
+      <div class="explorer-panel">
+        <div class="wafer-viewer">
+          <svg id="waferSvg" viewBox="0 0 320 260" width="100%" height="auto" aria-label="Simulated Wafer Surface View"></svg>
+          <div class="viewer-controls">
+            <span id="viewerCaption">Simulated Optical Micrograph &bull; Die Grid View</span>
+            <button class="toggle-btn" id="toggleOverlayBtn" type="button" onclick="toggleOverlay()">Toggle AI Overlay: ON</button>
+          </div>
+        </div>
+
+        <div class="defect-details">
+          <h3>
+            <span id="defectTitle">Normal Surface (Defect-Free Reference)</span>
+            <span id="defectBadge" class="class-badge normal">CLASS 0: NORMAL</span>
+          </h3>
+          <p id="defectDesc">
+            Acceptable semiconductor wafer or chip-surface image exhibiting uniform die grid geometry, intact circuit traces, and clean surface reflectivity without visible physical damage or foreign particles.
+          </p>
+
+          <div class="spec-list">
+            <div class="spec-row">
+              <strong>Visual Signature</strong>
+              <span id="defectVisual">Uniform micro-circuit pattern alignment with consistent surface contrast across die boundaries.</span>
+            </div>
+            <div class="spec-row">
+              <strong>Dataset Folder &amp; Preprocessing</strong>
+              <span id="defectPrep">Stored in <code>dataset/normal/</code>; resized to fixed input resolution and pixel-normalized before CNN ingestion.</span>
+            </div>
+            <div class="spec-row">
+              <strong>Conceptual System Action</strong>
+              <span id="defectAction">Predicted as Normal Surface &rarr; Logged as Pass in the automated inspection report.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI / CNN Workflow & Dataset Architecture -->
+    <section id="workflow">
+      <span class="section-eyebrow">03 &bull; Proposed AI Architecture</span>
+      <h2 class="section-title">End-to-End CNN Inspection Workflow &amp; Dataset Plan</h2>
+      <p class="section-subtitle">
+        Select each stage of the conceptual inspection pipeline to examine how raw wafer imagery is transformed into an actionable quality control report.
+      </p>
+
+      <div class="workflow-steps">
+        <button class="step-btn active" data-step="0" onclick="selectStep(0)">
+          <span class="step-num">Stage 01</span>
+          <span class="step-title">Wafer Image Input</span>
+        </button>
+        <button class="step-btn" data-step="1" onclick="selectStep(1)">
+          <span class="step-num">Stage 02</span>
+          <span class="step-title">Pre-Processing</span>
+        </button>
+        <button class="step-btn" data-step="2" onclick="selectStep(2)">
+          <span class="step-num">Stage 03</span>
+          <span class="step-title">CNN Model Analysis</span>
+        </button>
+        <button class="step-btn" data-step="3" onclick="selectStep(3)">
+          <span class="step-num">Stage 04</span>
+          <span class="step-title">Class Prediction</span>
+        </button>
+        <button class="step-btn" data-step="4" onclick="selectStep(4)">
+          <span class="step-num">Stage 05</span>
+          <span class="step-title">Inspection Report</span>
+        </button>
+      </div>
+
+      <div class="workflow-detail-box">
+        <h4 id="stepDetailTitle">Stage 01: Wafer Image Acquisition &amp; Input</h4>
+        <p id="stepDetailDesc">
+          High-resolution optical or microscope images of semiconductor wafer dies or chip surfaces are captured during manufacturing inspection and fed into the classification pipeline.
+        </p>
+        <div class="io-pills">
+          <div class="io-pill"><strong>Input:</strong> <span id="stepInput">Raw wafer / chip-surface image</span></div>
+          <div class="io-pill"><strong>Output:</strong> <span id="stepOutput">Digitized RGB / grayscale image frame</span></div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="panel-box">
+          <h3>Proposed Labelled Dataset Organization</h3>
+          <pre class="folder-tree">wafer_defect_dataset/
+├── train/          # Model feature learning
+│   ├── normal/
+│   ├── scratch/
+│   ├── particle/
+│   ├── crack/
+│   └── pattern/
+├── validation/     # Hyperparameter tuning
+└── test/           # Unseen final evaluation</pre>
+        </div>
+
+        <div class="panel-box">
+          <h3>Planned Evaluation Framework (Future Testing)</h3>
+          <p style="font-size:0.9rem; color:var(--text-secondary);">
+            Before deploying an AI inspection model in a real manufacturing setting, performance must be benchmarked on unseen test images using standard classification metrics:
+          </p>
+          <div class="metric-tags">
+            <div class="metric-tag">
+              <strong>Accuracy</strong>
+              <span>Overall proportion of correctly classified wafer images.</span>
+            </div>
+            <div class="metric-tag">
+              <strong>Precision</strong>
+              <span>Reliability of defect alerts (minimizing false alarms).</span>
+            </div>
+            <div class="metric-tag">
+              <strong>Recall</strong>
+              <span>Sensitivity to catching true surface defects.</span>
+            </div>
+            <div class="metric-tag">
+              <strong>Confusion Matrix</strong>
+              <span>Class-by-class breakdown across all 5 categories.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Practical Documentation & Presentation Outline -->
+    <section id="documentation">
+      <span class="section-eyebrow">04 &bull; Practical – 10 Documentation</span>
+      <h2 class="section-title">Sub-Tasks Execution &amp; Presentation Structure</h2>
+      <p class="section-subtitle">
+        Summary of the four Practical – 10 sub-tasks completed using Gemini and digital portfolio tools, along with the 7-slide presentation plan.
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Sr. No.</th>
+              <th>Task Description</th>
+              <th>Tools / Platform</th>
+              <th>Deliverable Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Select an AI-based topic or application and prepare the project content.</td>
+              <td><span class="tool-pill">Gemini</span></td>
+              <td>Completed &mdash; Defined CNN wafer defect inspection scope &amp; dataset plan.</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Create a digital portfolio with project details, visuals, results, and documentation.</td>
+              <td><span class="tool-pill">Canva / Google Sites</span></td>
+              <td>Completed &mdash; Structured sections, schematic visuals &amp; workflow diagrams.</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Present the project using suitable visual and AI-generated content.</td>
+              <td><span class="tool-pill">Gemini / Canva</span></td>
+              <td>Completed &mdash; Organized 7-slide technical presentation deck sequence.</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Publish and share the final portfolio with project outcomes and conclusions.</td>
+              <td><span class="tool-pill">Google Sites / GitHub</span></td>
+              <td>Ready for Publishing &mdash; Single-file web portfolio prepared for GitHub Pages.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size:1.15rem; margin-bottom:1rem; color:var(--text-primary);">Suggested 7-Slide Presentation Sequence</h3>
+      <div class="slides-grid">
+        <div class="slide-card">
+          <span>Slide 01</span>
+          <p>Project Title &amp; Student Details (KU202609127)</p>
+        </div>
+        <div class="slide-card">
+          <span>Slide 02</span>
+          <p>Introduction to Semiconductor Wafers &amp; Chips</p>
+        </div>
+        <div class="slide-card">
+          <span>Slide 03</span>
+          <p>Problem Statement &amp; Project Objectives</p>
+        </div>
+        <div class="slide-card">
+          <span>Slide 04</span>
+          <p>Defect Categories &amp; Illustrative Examples</p>
+        </div>
+        <div class="slide-card">
+          <span>Slide 05</span>
+          <p>Proposed AI / CNN Working Process</p>
+        </div>
+        <div class="slide-card">
+          <span>Slide 06</span>
+          <p>Expected Output, Applications, Benefits &amp; Limitations</p>
+        </div>
+        <div class="slide-card">
+          <span>Slide 07</span>
+          <p>Conclusion &amp; Future Scope</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Outcomes & Conclusion -->
+    <section id="outcomes">
+      <span class="section-eyebrow">05 &bull; Synthesis &amp; Takeaways</span>
+      <h2 class="section-title">Project Outcomes &amp; Conclusion</h2>
+      <p class="section-subtitle">
+        Key learning outcomes from Practical – 10 in Fundamentals of Artificial Intelligence (26UTU01003).
+      </p>
+
+      <ul class="outcomes-list">
+        <li>
+          <span class="outcome-num">01</span>
+          <span>Understood the importance of semiconductor wafer inspection in electronics and chip manufacturing.</span>
+        </li>
+        <li>
+          <span class="outcome-num">02</span>
+          <span>Identified example surface-defect categories (normal, scratch, particle, crack, pattern) for a labelled image dataset.</span>
+        </li>
+        <li>
+          <span class="outcome-num">03</span>
+          <span>Learned how image preprocessing and CNN-based classification operate within a proposed visual-inspection workflow.</span>
+        </li>
+        <li>
+          <span class="outcome-num">04</span>
+          <span>Prepared a structured digital portfolio containing project details, visuals, workflow diagrams, and documentation.</span>
+        </li>
+        <li>
+          <span class="outcome-num">05</span>
+          <span>Understood that model performance must be evaluated using unseen test images and suitable quantitative metrics.</span>
+        </li>
+        <li>
+          <span class="outcome-num">06</span>
+          <span>Explored how AI-assisted inspection can support quality control and reduce repetitive manual checking.</span>
+        </li>
+      </ul>
+
+      <div class="conclusion-box">
+        <h3>Conclusion</h3>
+        <p>
+          The <strong>AI-Based Semiconductor Wafer Defect Detection</strong> project demonstrates a practical application of Artificial Intelligence in the semiconductor industry. By analysing wafer or chip-surface images, an image-classification model can help identify visible defects and support quality inspection. Through this practical, I connected AI concepts such as image preprocessing, labelled datasets, Convolutional Neural Networks (CNNs), and model evaluation with electronics and chip technology, while recognizing the importance of reliable data, testing, and human review before real-world manufacturing deployment.
+        </p>
+
+        <div class="publish-bar">
+          <input id="portfolioUrlInput" type="url" value="https://github.com/priyansh-shrimali/ai-wafer-defect-detection" aria-label="Live Portfolio URL" />
+          <button class="btn-copy" type="button" onclick="copyPortfolioUrl()">Copy Portfolio Link</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Priyansh Hiteshkumar Shrimali (KU202609127) &bull; B.Tech ECE &bull; Unitedworld Institute of Technology (UIT), Karnavati University &bull; Academic Year 2026–2027
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const defectData = {
+      normal: {
+        title: "Normal Surface (Defect-Free Reference)",
+        badge: "CLASS 0: NORMAL",
+        isNormal: true,
+        desc: "Acceptable semiconductor wafer or chip-surface image exhibiting uniform die grid geometry, intact circuit traces, and clean surface reflectivity without visible physical damage or foreign particles.",
+        visual: "Uniform micro-circuit pattern alignment with consistent surface contrast across die boundaries.",
+        prep: "Stored in dataset/normal/; resized to fixed input resolution and pixel-normalized before CNN ingestion.",
+        action: "Predicted as Normal Surface -> Logged as Pass in the automated inspection report."
+      },
+      scratch: {
+        title: "Scratch Defect",
+        badge: "CLASS 1: SCRATCH",
+        isNormal: false,
+        desc: "Linear or curved mechanical abrasion across the wafer or chip surface caused by handling equipment, wafer polishing, or contact friction during fabrication.",
+        visual: "High-contrast directional streak cutting across multiple die interconnects.",
+        prep: "Stored in dataset/scratch/; edge and contrast features preserved during image resizing and normalization.",
+        action: "Predicted as Scratch -> Flagged in inspection report for surface integrity review."
+      },
+      particle: {
+        title: "Particle / Contamination Defect",
+        badge: "CLASS 2: PARTICLE",
+        isNormal: false,
+        desc: "Foreign dust, chemical residue, or microscopic debris deposited on the wafer surface that can block lithography exposure or cause short circuits.",
+        visual: "Localized high-intensity clusters or irregular dark/bright spots resting on circuit layers.",
+        prep: "Stored in dataset/particle/; normalized to highlight localized intensity anomalies against background dies.",
+        action: "Predicted as Particle / Contamination -> Trigger cleanroom contamination check."
+      },
+      crack: {
+        title: "Crack Defect",
+        badge: "CLASS 3: CRACK",
+        isNormal: false,
+        desc: "Structural micro-fracture propagating through the silicon substrate or die edge due to thermal stress or mechanical shock.",
+        visual: "Jagged, branching fracture line disrupting wafer continuity and die boundaries.",
+        prep: "Stored in dataset/crack/; multi-scale spatial features learned by convolutional filters.",
+        action: "Predicted as Crack -> Marked as critical structural defect for wafer rejection."
+      },
+      pattern: {
+        title: "Pattern Irregularity",
+        badge: "CLASS 4: PATTERN",
+        isNormal: false,
+        desc: "Lithography or etching distortion resulting in malformed circuit traces, bridging, missing lines, or misaligned micro-patterns.",
+        visual: "Geometric deviation from expected periodic die trace symmetry.",
+        prep: "Stored in dataset/pattern/; spatial filter kernels compare local trace topology against normal templates.",
+        action: "Predicted as Pattern Irregularity -> Routed to lithography process engineering."
+      }
+    };
+
+    const workflowData = [
+      {
+        title: "Stage 01: Wafer Image Acquisition & Input",
+        desc: "High-resolution optical or microscope images of semiconductor wafer dies or chip surfaces are captured during manufacturing inspection and fed into the classification pipeline.",
+        input: "Raw wafer / chip-surface image",
+        output: "Digitized RGB / grayscale image frame"
+      },
+      {
+        title: "Stage 02: Image Pre-Processing",
+        desc: "Input images undergo standardized resizing to match CNN input dimensions, pixel intensity normalization, and organization into labelled class folders.",
+        input: "Digitized wafer image frame",
+        output: "Resized, normalized tensor array"
+      },
+      {
+        title: "Stage 03: CNN Model Feature Analysis",
+        desc: "A Convolutional Neural Network applies stacked convolutional and pooling layers to automatically extract hierarchical visual features such as edges, textures, lines, and spatial anomalies.",
+        input: "Pre-processed image tensor",
+        output: "Extracted deep visual feature maps"
+      },
+      {
+        title: "Stage 04: Defect Category Prediction",
+        desc: "Fully connected classification layers evaluate extracted feature maps and output probability scores across the five target classes: Normal, Scratch, Particle, Crack, or Pattern Irregularity.",
+        input: "Deep visual feature maps",
+        output: "Predicted defect class label"
+      },
+      {
+        title: "Stage 05: Automated Inspection Report",
+        desc: "The predicted category and quality status are compiled into a structured inspection summary to assist quality control engineers in review and decision-making.",
+        input: "Predicted class label & metadata",
+        output: "Structured wafer quality inspection report"
+      }
+    ];
+
+    let currentDefect = "normal";
+    let showOverlay = true;
+
+    function renderWaferSvg() {
+      const svg = document.getElementById("waferSvg");
+      let gridMarkup = `
+        <rect x="0" y="0" width="320" height="260" fill="#091326" />
+        <circle cx="160" cy="130" r="112" fill="#10203d" stroke="#38bdf8" stroke-width="1.5" stroke-opacity="0.45" />
+      `;
+
+      // Die grid lines
+      for (let x = 76; x <= 244; x += 28) {
+        gridMarkup += `<line x1="${x}" y1="32" x2="${x}" y2="228" stroke="#1e3a5f" stroke-width="1" />`;
+      }
+      for (let y = 46; y <= 214; y += 28) {
+        gridMarkup += `<line x1="62" y1="${y}" x2="258" y2="${y}" stroke="#1e3a5f" stroke-width="1" />`;
+      }
+
+      // Micro-circuit trace accents
+      gridMarkup += `
+        <g stroke="#2563eb" stroke-opacity="0.35" stroke-width="1.2" fill="none">
+          <rect x="104" y="74" width="28" height="28" />
+          <rect x="132" y="102" width="28" height="28" />
+          <rect x="160" y="130" width="28" height="28" />
+          <rect x="188" y="102" width="28" height="28" />
+        </g>
+      `;
+
+      let defectMarkup = "";
+      let overlayMarkup = "";
+
+      if (currentDefect === "normal") {
+        overlayMarkup = showOverlay ? `
+          <rect x="88" y="60" width="144" height="140" rx="8" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="6 4" />
+          <rect x="88" y="40" width="124" height="18" rx="4" fill="#10b981" />
+          <text x="94" y="52" fill="#052e16" font-size="10" font-weight="800" font-family="monospace">PASS: NORMAL SURFACE</text>
+        ` : "";
+      } else if (currentDefect === "scratch") {
+        defectMarkup = `
+          <path d="M 96 176 Q 155 125 224 78" stroke="#fbbf24" stroke-width="3.2" stroke-linecap="round" fill="none" />
+          <path d="M 102 181 Q 158 131 226 84" stroke="#fef08a" stroke-width="1" stroke-opacity="0.7" fill="none" />
+        `;
+        overlayMarkup = showOverlay ? `
+          <rect x="88" y="68" width="148" height="122" rx="6" fill="rgba(245, 158, 11, 0.08)" stroke="#f59e0b" stroke-width="2" />
+          <rect x="88" y="48" width="132" height="18" rx="4" fill="#f59e0b" />
+          <text x="94" y="60" fill="#182334" font-size="10" font-weight="800" font-family="monospace">DEFECT: SCRATCH</text>
+        ` : "";
+      } else if (currentDefect === "particle") {
+        defectMarkup = `
+          <circle cx="174" cy="116" r="7" fill="#f59e0b" />
+          <circle cx="184" cy="123" r="4.5" fill="#fbbf24" />
+          <circle cx="168" cy="126" r="3.5" fill="#fde047" />
+          <circle cx="180" cy="111" r="2.5" fill="#ffffff" />
+        `;
+        overlayMarkup = showOverlay ? `
+          <rect x="152" y="96" width="48" height="44" rx="6" fill="rgba(245, 158, 11, 0.12)" stroke="#f59e0b" stroke-width="2" />
+          <rect x="134" y="76" width="114" height="18" rx="4" fill="#f59e0b" />
+          <text x="140" y="88" fill="#182334" font-size="10" font-weight="800" font-family="monospace">DEFECT: PARTICLE</text>
+        ` : "";
+      } else if (currentDefect === "crack") {
+        defectMarkup = `
+          <polyline points="118,62 132,92 125,118 148,145 142,174 162,198" fill="none" stroke="#f43f5e" stroke-width="3" stroke-linejoin="round" />
+          <polyline points="132,92 152,104 164,101" fill="none" stroke="#fda4af" stroke-width="1.8" />
+        `;
+        overlayMarkup = showOverlay ? `
+          <rect x="108" y="56" width="66" height="148" rx="6" fill="rgba(244, 63, 94, 0.1)" stroke="#f43f5e" stroke-width="2" />
+          <rect x="108" y="36" width="102" height="18" rx="4" fill="#f43f5e" />
+          <text x="114" y="48" fill="#ffffff" font-size="10" font-weight="800" font-family="monospace">DEFECT: CRACK</text>
+        ` : "";
+      } else if (currentDefect === "pattern") {
+        defectMarkup = `
+          <g stroke="#818cf8" stroke-width="2.5" fill="none">
+            <path d="M 132 102 C 142 92, 150 116, 160 102" />
+            <path d="M 132 114 C 145 128, 148 96, 160 118" />
+            <rect x="136" y="106" width="20" height="16" fill="rgba(99, 102, 241, 0.35)" />
+          </g>
+        `;
+        overlayMarkup = showOverlay ? `
+          <rect x="122" y="88" width="52" height="48" rx="6" fill="rgba(99, 102, 241, 0.14)" stroke="#818cf8" stroke-width="2" />
+          <rect x="110" y="68" width="118" height="18" rx="4" fill="#6366f1" />
+          <text x="116" y="80" fill="#ffffff" font-size="10" font-weight="800" font-family="monospace">DEFECT: PATTERN</text>
+        ` : "";
+      }
+
+      svg.innerHTML = gridMarkup + defectMarkup + overlayMarkup;
+    }
+
+    function selectDefect(key) {
+      currentDefect = key;
+      const item = defectData[key];
+
+      document.querySelectorAll(".defect-tab").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.defect === key);
+      });
+
+      document.getElementById("defectTitle").textContent = item.title;
+      const badge = document.getElementById("defectBadge");
+      badge.textContent = item.badge;
+      badge.className = item.isNormal ? "class-badge normal" : "class-badge";
+
+      document.getElementById("defectDesc").textContent = item.desc;
+      document.getElementById("defectVisual").textContent = item.visual;
+      document.getElementById("defectPrep").textContent = item.prep;
+      document.getElementById("defectAction").textContent = item.action;
+
+      renderWaferSvg();
+    }
+
+    function selectDefectAndScroll(key) {
+      selectDefect(key);
+      document.getElementById("defects").scrollIntoView({ behavior: "smooth" });
+    }
+
+    function toggleOverlay() {
+      showOverlay = !showOverlay;
+      document.getElementById("toggleOverlayBtn").textContent = `Toggle AI Overlay: ${showOverlay ? "ON" : "OFF"}`;
+      renderWaferSvg();
+    }
+
+    function selectStep(index) {
+      const step = workflowData[index];
+      document.querySelectorAll(".step-btn").forEach((btn, i) => {
+        btn.classList.toggle("active", i === index);
+      });
+      document.getElementById("stepDetailTitle").textContent = step.title;
+      document.getElementById("stepDetailDesc").textContent = step.desc;
+      document.getElementById("stepInput").textContent = step.input;
+      document.getElementById("stepOutput").textContent = step.output;
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2600);
+    }
+
+    document.getElementById("copyMetaBtn").addEventListener("click", () => {
+      const text = [
+        "Project: AI-Based Semiconductor Wafer Defect Detection",
+        "Student: Priyansh Hiteshkumar Shrimali",
+        "KU ID: KU202609127",
+        "Programme: B.Tech - ECE | Karnavati University (UIT)",
+        "Course: Fundamentals of Artificial Intelligence (26UTU01003) - Practical 10"
+      ].join("\n");
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("Student & Practical-10 metadata copied to clipboard.");
+      }).catch(() => {
+        showToast("Metadata ready: Priyansh Hiteshkumar Shrimali (KU202609127)");
+      });
+    });
+
+    function copyPortfolioUrl() {
+      const input = document.getElementById("portfolioUrlInput");
+      navigator.clipboard.writeText(input.value).then(() => {
+        showToast("Portfolio URL copied to clipboard.");
+      }).catch(() => {
+        input.select();
+        showToast("URL selected — press Ctrl+C / Cmd+C to copy.");
+      });
+    }
+
+    // Initialize default view
+    renderWaferSvg();
+  </script>
+</body>
+</html>
